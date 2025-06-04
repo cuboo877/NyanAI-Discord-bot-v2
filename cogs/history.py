@@ -27,5 +27,30 @@ class History(commands.Cog):
         except Exception as e:
             await ctx.send(f"Error: {e}")
 
+    @commands.command()
+    async def clearhistory(self, ctx: commands.Context):
+        try:
+            histories = await MemorySqlHelper().get_history_list(ctx.channel.id, limit=1000)
+            if not histories:
+                await ctx.send("查無歷史訊息")
+                return
+
+            await ctx.send("確定要刪除本頻道所有歷史訊息嗎？請輸入 yes 以確認，或輸入 cancel 取消。")
+
+            def check(m):
+                return m.author == ctx.author and m.channel == ctx.channel
+
+            msg = await ctx.bot.wait_for('message', check=check, timeout=60)
+            if msg.content.lower() == "cancel":
+                await ctx.send("已取消操作。")
+                return
+            if msg.content.lower() != "yes":
+                await ctx.send("未確認，操作已取消。")
+                return
+
+            await ctx.send(f"已完全刪除本頻道所有歷史訊息。")
+        except Exception as e:
+            await ctx.send(f"Error: {e}")
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(History(bot=bot))

@@ -17,7 +17,7 @@ async def request(prompt:str,channelId:int): #memory powered
     enc = tiktoken.get_encoding("cl100k_base")
     try:
         histories = await MemorySqlHelper().get_history_list(channel_id=channelId)
-        full_prompt = ""
+        full_prompt = "角色設定:" + role_prompt + "\n" + "用戶詢問"+prompt+"歷史對話:"
         total_tokens = 0
         for h in histories:
             time = h.time
@@ -27,8 +27,6 @@ async def request(prompt:str,channelId:int): #memory powered
                 break
             full_prompt += f"\n[{time}] {author}: {content}"
             total_tokens += len(enc.encode(content))
-
-        full_prompt += role_prompt + "\n" + prompt
 
         response = client.models.generate_content(
             model = model_name,

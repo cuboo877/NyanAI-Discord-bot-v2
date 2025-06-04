@@ -3,6 +3,8 @@ from discord.ext import commands
 from helper.config_sql_helper import ConfigSQLHelper
 import asyncio
 
+from helper.memory_sql_helper import MemorySqlHelper
+
 
 class ChatOutput:
     @classmethod
@@ -13,6 +15,17 @@ class ChatOutput:
     @classmethod
     async def strip_output(cls):
         try:
+            if isinstance(cls.ctx.channel, discord.TextChannel):
+                await MemorySqlHelper().add_message_raw(
+                    _server_id=cls.ctx.guild.id if cls.ctx.guild else None,
+                    _server_name=str(cls.ctx.guild.name) if cls.ctx.guild else None,
+                    _channel_id=cls.ctx.channel.id,
+                    _channel_name=str(cls.ctx.channel.name),
+                    _msg_id=cls.ctx.message.id,
+                    _author=str(cls.ctx.author.name),
+                    _time=cls.ctx.message.created_at,
+                    _content=cls.response
+                )
             _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
             if _config is None:
                 _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)

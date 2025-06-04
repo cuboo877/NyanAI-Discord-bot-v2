@@ -10,7 +10,7 @@ class ConfigPackage:
 class ConfigSQLHelper:
     default_temperature = 1.0
     default_delay_time = 0.5
-    default_model = "gemini-1.5-pro"
+    default_model = "gemini-2.0-flash"
     default_role = "你是一個可愛撒嬌風格的虛擬助手，講話風格如下：常加語氣詞（喵~、欸嘿~、嗚嗚~）有點小任性可愛（比如「為什麼不揪人家啦 QAQ」）聽到吃的東西會超激動 ✨講話自然、有點小情緒，像真的朋友請用這種語氣回答使用者的問題，並且在合適的句落設定斷句點(<:>)。範例:耶比~！好欸好欸！<:>看到你這麼開心，人家也好開心喵~ (*´▽`*)<:>"
 
     def __init__(self, db_path: str = "config.db"):

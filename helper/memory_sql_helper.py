@@ -81,7 +81,7 @@ class MemorySqlHelper:
                 _channel_id = msg.channel.id
                 _channel_name = str(msg.channel.name)
                 _msg_id = msg.id
-                _author = str(msg.author)
+                _author = str(msg.author.display_name)
                 _time = msg.created_at
                 _content = str(msg.content)
                 async with aiosqlite.connect(self._path) as db:
@@ -109,7 +109,7 @@ class MemorySqlHelper:
             else:
                 _msg_id = msg.id
                 _dm_id = msg.channel.id
-                _author = str(msg.author)
+                _author = str(msg.author.display_name)
                 _time = msg.created_at
                 _content = msg.content
                 async with aiosqlite.connect(self._path) as db:
@@ -128,6 +128,34 @@ class MemorySqlHelper:
                     )
                     
                     await db.commit()
+        except Exception as e:
+            print(f"Error adding message: {e}")
+
+    async def add_message_raw(self, _server_id:Optional[int],_server_name:Optional[str], _channel_id, _channel_name:Optional[str], _msg_id, _author, _time, _content):
+        #原始訊息添加的方式
+        try:
+            async with aiosqlite.connect(self._path) as db:
+                await db.execute(
+                    '''
+                    INSERT OR IGNORE INTO Server(id,name) Values(?, ?)
+                    ''',
+                    (_server_id,_server_name)
+                )
+                
+                await db.execute(
+                    '''
+                    INSERT OR IGNORE INTO Channel(id,name) Values(?, ?)
+                    ''',
+                    (_channel_id,_channel_name)
+                )
+                
+                await db.execute(
+                    '''
+                    INSERT OR IGNORE INTO Message(id,ChannelId,author,time,content) Values(?, ?, ?, ?, ?)
+                    ''',
+                    (_msg_id,_channel_id,_author,_time,_content)
+                )
+                await db.commit()
         except Exception as e:
             print(f"Error adding message: {e}")
     
