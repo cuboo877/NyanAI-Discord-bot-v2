@@ -10,7 +10,7 @@ class Chat(commands.Cog):
         try:
             async with ctx.message.channel.typing():
                 print("request to gemini now")
-                response = await request(user_input)
+                response = await request(user_input, ctx.message.channel.id)
                 if response:
                     await ChatOutput(response=response, ctx=ctx).strip_output()
                 else:

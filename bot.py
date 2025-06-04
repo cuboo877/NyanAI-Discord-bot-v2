@@ -3,14 +3,17 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import asyncio
-from utils.config_controller import ConfigController
-from memory.sql_helper import SqlHelper
+from helper.config_sql_helper import ConfigSQLHelper
+from helper.memory_sql_helper import MemorySqlHelper
+
 load_dotenv()
 #--------------
-ConfigController.load()
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 token = os.getenv('discord-token')
+if not token:
+    raise ValueError("找不到 Discord token，請確認 .env 檔案有設定 'discord-token'")
+
 
 @bot.event
 async def on_ready():
@@ -18,7 +21,14 @@ async def on_ready():
     print(f'Bot is in {len(bot.guilds)} guilds')
     for guild in bot.guilds:
         print(f'- {guild.name} (id: {guild.id})')
-
+        
+@bot.event
+async def on_message(message): #只新增非bot訊息到記憶庫
+    if message:
+        await MemorySqlHelper().add_message(message)
+        print("added message to memory")
+    await bot.process_commands(message)  # <--- 加這行
+        
 @bot.event
 async def on_command_error(ctx, error):
     print(f'Command error: {error}')
@@ -30,19 +40,22 @@ async def on_command_error(ctx, error):
         await ctx.send(f"喵嗚~ 發生錯誤了：{error}")
 
 async def load_extensions():
-    for filename in os.listdir("NyanAI\cogs"): # type: ignore
+    for filename in os.listdir("cogs"):
         if filename.endswith(".py"):
             module_name = f"cogs.{filename[:-3]}"
             try:
-                await bot.load_extension(module_name)
+                await bot.load_extension(module_name)   
                 print(f"✅ Loaded extension: {module_name}")
             except Exception as e:
                 print(f"❌ Failed to load {module_name}: {e}")
 
 async def main():
+    # 先初始化資料庫
+    await ConfigSQLHelper().init_db()
+    await MemorySqlHelper().init_db()
+    print("initialized memory sql")
     async with bot:
         await load_extensions()
-        await bot.start(token=token) # type: ignore
-        await SqlHelper.init_db()
+        await bot.start(token=token) #type: ignore
 
 asyncio.run(main())

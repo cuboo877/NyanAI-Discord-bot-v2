@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils.config_controller import ConfigController
+from helper.config_sql_helper import ConfigSQLHelper
 from utils.info_getter import InfoGetterByCtx
 class Setting(commands.Cog):
     def __init__(self, bot:commands.Bot):
@@ -29,12 +29,6 @@ class Setting(commands.Cog):
         )
 
         embed.add_field(
-            name="🧠 `!set model <模型名稱>`",
-            value="指定使用的 AI 模型\n預設為：`gemini-1.5-pro`\n你也可以換成自己部署的模型名稱喵！",
-            inline=False
-        )
-
-        embed.add_field(
             name="🔥 `!set temperature <0~2>`",
             value="設定 AI 回應的 **創造力溫度**\n👉 範圍：`0`（穩定）～ `2`（瘋狂）\n建議值：`0.7 ~ 1.3`",
             inline=False
@@ -47,8 +41,8 @@ class Setting(commands.Cog):
         )
 
         embed.set_footer(
-            text= InfoGetterByCtx.get_server_name,
-            icon_url= InfoGetterByCtx.get_server_icon_url
+            text= InfoGetterByCtx.get_channel_name(ctx),
+            icon_url= InfoGetterByCtx.get_server_icon_url(ctx)  
         )
 
         try:
@@ -62,7 +56,7 @@ class Setting(commands.Cog):
     async def delay(self, ctx:commands.Context, value:float):
         print(f"Set delay command invoked with value={value}")
         try:
-            if ConfigController.edit(key="delay-time", value=value):
+            if await ConfigSQLHelper().set(channel_id=ctx.channel.id, delay_time=value):
                 await ctx.send(embed=discord.Embed(
                     title="設定成功喵~ ✨",
                     description=f"已將延遲時間設定為 **{value}** 秒",
@@ -77,25 +71,16 @@ class Setting(commands.Cog):
             ))
 
     @set.command()
-    async def model(self, ctx:commands.Context, value:str):
-        print(f"Set model command invoked with value={value}")
-        if ConfigController.edit(key="model", value=value):
-            await ctx.send(embed=discord.Embed(
-                title="設定成功喵~ ✨",
-                description=f"已將模型設定為 **{value}**",
-                color=0xf5d400
-            ))
-
-    @set.command()
     async def temperature(self, ctx:commands.Context, value:float):
-        print(f"Set temperature command invoked with value={value}")
         try:
-            if ConfigController.edit(key="temperature", value=value):
+            if await ConfigSQLHelper().set(channel_id=ctx.channel.id, temperature=value):
                 await ctx.send(embed=discord.Embed(
                     title="設定成功喵~ ✨",
                     description=f"已將創造力溫度設定為 **{value}**",
                     color=0xf5d400
                 ))
+            print(f"Set temperature command invoked with value={value}")
+            
         except Exception as e:
             print(f"Error in temperature command: {e}")
             await ctx.send(embed=discord.Embed(
@@ -107,16 +92,15 @@ class Setting(commands.Cog):
     @set.command()
     async def default(self, ctx:commands.Context):
         print("Set default command invoked")
-        default_config = {
-            "role": "你是一個可愛撒嬌風格的虛擬助手，講話風格如下：常加語氣詞（喵~、欸嘿~、嗚嗚~）有點小任性可愛（比如「為什麼不揪人家啦 QAQ」）聽到吃的東西會超激動 ✨講話自然、有點小情緒，像真的朋友請用這種語氣回答使用者的問題，並且在合適的句落設定斷句點(<:>)。範例:耶比~！好欸好欸！<:>看到你這麼開心，人家也好開心喵~ (*´▽`*) 快點快點~<:>有什麼有趣的事情要跟人家說，或是想問人家問題嗎？<:>不要讓人等太久啦，不然人家會孤單寂寞覺得冷的嗚嗚... ( TДT)<:>",
-            "temperature": 1.5,
-            "delay-time": 1,
-            "model": "gemini-2.0-flash"
-        }
-        
-        for key, value in default_config.items():
-            ConfigController.edit(key=key, value=value)
-        
+        try:
+            await ConfigSQLHelper().set_default_config(channelID=ctx.channel.id)
+        except Exception as e:
+            print(f"Error in default command: {e}")
+            await ctx.send(embed=discord.Embed(
+                title="重設失敗喵！",
+                description="請稍後再試或聯繫管理員喵~",
+                color=0xf5d400
+            ))
         await ctx.send(embed=discord.Embed(
             title="設定已重置喵~ ✨",
             description="所有設定都已恢復為預設值！",
