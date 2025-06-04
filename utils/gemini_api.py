@@ -14,7 +14,7 @@ client = genai.Client(api_key=apiKey)
 model_name = ConfigSQLHelper.default_model
 
 
-async def chat_request(prompt:str): #memory powered
+async def request(prompt:str): #memory powered
     try:
         response = client.models.generate_content(
             model = model_name,

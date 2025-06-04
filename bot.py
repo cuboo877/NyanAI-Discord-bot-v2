@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import asyncio
 from helper.config_sql_helper import ConfigSQLHelper
 from helper.history_sql_helper import HistorySqlHelper
-from helper.memory_sql_helper import MemorySqlHelper
+from helper.concentrated_sql_helper import ConcentratedSqlHelper
 
 load_dotenv()
 #--------------
@@ -51,7 +51,7 @@ async def load_extensions():
 
 async def main():
     # 先初始化資料庫
-    await MemorySqlHelper().init_db()
+    await ConcentratedSqlHelper().init_db()
     await ConfigSQLHelper().init_db()
     await HistorySqlHelper().init_db()
     print("initialized sql")

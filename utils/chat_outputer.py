@@ -4,7 +4,7 @@ from helper.config_sql_helper import ConfigSQLHelper
 import asyncio
 from typing import Optional
 from helper.history_sql_helper import HistorySqlHelper
-
+from helper.concentrated_sql_helper import ConcentratedSqlHelper
 
 class ChatOutput:
     @classmethod
@@ -20,9 +20,12 @@ class ChatOutput:
             if "<m>" in cls.response:
                 cls.content = cls.response.split("<m>")[0]
                 cls.deep_memory = cls.response.split("<m>")[1]
+                await ConcentratedSqlHelper().add_memory(
+                    ctx=cls.ctx, content=cls.deep_memory
+                )  # 新增濃縮記憶
             else:
                 cls.content = cls.response
-                #TODO:還要處理深度記憶的SQL操作
+            
             _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
             if _config is None:
                 _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)

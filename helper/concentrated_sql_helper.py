@@ -1,18 +1,18 @@
 import aiosqlite
 from typing import Optional
+from discord.ext import commands
 
-class MemoryPackage:
+class ConcentratedPackage:
     def __init__(self, memory):
-        # memory 是 tuple: (id, channelId, author, time, content)
+        # memory 是 tuple: (id, channelId, time, content)
         self.id = memory[0]
         self.channel_id = memory[1]
-        self.author = memory[2]
-        self.time = memory[3]
-        self.content = memory[4]
+        self.time = memory[2]
+        self.content = memory[3]
 
-class MemorySqlHelper:
+class ConcentratedSqlHelper:
     def __init__(self):
-        self._path = "deep_memory.db"
+        self._path = "concentrated_memory.db"
 
     async def init_db(self):
         try:
@@ -22,7 +22,6 @@ class MemorySqlHelper:
                     CREATE TABLE IF NOT EXISTS Memory (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         channelId BIGINT,
-                        author TEXT,
                         time TEXT,
                         content TEXT
                     )
@@ -32,14 +31,14 @@ class MemorySqlHelper:
         except Exception as e:
             print(f"Error initializing database: {e}")
 
-    async def add_memory(self, channel_id: int, author: str, time, content: str):
+    async def add_memory(self, ctx:commands.Context,content: Optional[str] = None):
         try:
             async with aiosqlite.connect(self._path) as db:
                 await db.execute(
                     '''
-                    INSERT INTO Memory(channelId, author, time, content) VALUES (?, ?, ?, ?)
+                    INSERT INTO Memory(channelId, time, content) VALUES (?, ?, ?)
                     ''',
-                    (channel_id, author, time, content)
+                    (ctx.channel.id, ctx.message.created_at, content)
                 )
                 await db.commit()
         except Exception as e:
@@ -57,7 +56,7 @@ class MemorySqlHelper:
                 rows = await cursor.fetchall()
                 result = []
                 for row in rows:
-                    result.append(MemoryPackage(memory=row))
+                    result.append(ConcentratedPackage(memory=row))
                 return result
         except Exception as e:
             print(f"Error getting memory list: {e}")
