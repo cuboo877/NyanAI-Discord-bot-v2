@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 from helper.config_sql_helper import ConfigSQLHelper
 import asyncio
-
-from helper.memory_sql_helper import MemorySqlHelper
+from typing import Optional
+from helper.history_sql_helper import HistorySqlHelper
 
 
 class ChatOutput:
@@ -11,25 +11,22 @@ class ChatOutput:
     def __init__(cls, response:str, ctx:commands.Context):
         cls.ctx = ctx
         cls.response = response
+        cls.content = ""
+        cls.deep_memory = Optional[str]  # 用於深度記憶的特殊處理
         
     @classmethod
     async def strip_output(cls):
         try:
-            if isinstance(cls.ctx.channel, discord.TextChannel):
-                await MemorySqlHelper().add_message_raw(
-                    _server_id=cls.ctx.guild.id if cls.ctx.guild else None,
-                    _server_name=str(cls.ctx.guild.name) if cls.ctx.guild else None,
-                    _channel_id=cls.ctx.channel.id,
-                    _channel_name=str(cls.ctx.channel.name),
-                    _msg_id=cls.ctx.message.id,
-                    _author=str(cls.ctx.author.name),
-                    _time=cls.ctx.message.created_at,
-                    _content=cls.response
-                )
+            if "<m>" in cls.response:
+                cls.content = cls.response.split("<m>")[0]
+                cls.deep_memory = cls.response.split("<m>")[1]
+            else:
+                cls.content = cls.response
+                #TODO:還要處理深度記憶的SQL操作
             _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
             if _config is None:
                 _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)
-            segment = [s.strip() for s in cls.response.split("<:>") if s.strip()]
+            segment = [s.strip() for s in cls.content.split("<:>") if s.strip()]
             for part in segment:
                 await cls.ctx.send(part)
                 await asyncio.sleep(_config.delay_time)

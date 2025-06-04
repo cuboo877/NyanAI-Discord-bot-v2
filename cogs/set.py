@@ -42,7 +42,6 @@ class Setting(commands.Cog):
 
         embed.set_footer(
             text= InfoGetterByCtx.get_channel_name(ctx),
-            icon_url= InfoGetterByCtx.get_server_icon_url(ctx)  
         )
 
         try:
@@ -71,7 +70,7 @@ class Setting(commands.Cog):
             ))
 
     @set.command()
-    async def temperature(self, ctx:commands.Context, value:float):
+    async def temp(self, ctx:commands.Context, value:float):
         try:
             if await ConfigSQLHelper().set(channel_id=ctx.channel.id, temperature=value):
                 await ctx.send(embed=discord.Embed(
@@ -94,6 +93,11 @@ class Setting(commands.Cog):
         print("Set default command invoked")
         try:
             await ConfigSQLHelper().set_default_config(channelID=ctx.channel.id)
+            await ctx.send(embed=discord.Embed(
+            title="設定已重置喵~ ✨",
+            description="所有設定都已恢復為預設值！",
+            color=0xf5d400
+            ))
         except Exception as e:
             print(f"Error in default command: {e}")
             await ctx.send(embed=discord.Embed(
@@ -101,11 +105,7 @@ class Setting(commands.Cog):
                 description="請稍後再試或聯繫管理員喵~",
                 color=0xf5d400
             ))
-        await ctx.send(embed=discord.Embed(
-            title="設定已重置喵~ ✨",
-            description="所有設定都已恢復為預設值！",
-            color=0xf5d400
-        ))
+        
 
 async def setup(bot:commands.Bot):
     print("Setting cog setup started")

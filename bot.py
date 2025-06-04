@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 from helper.config_sql_helper import ConfigSQLHelper
+from helper.history_sql_helper import HistorySqlHelper
 from helper.memory_sql_helper import MemorySqlHelper
 
 load_dotenv()
@@ -23,12 +24,11 @@ async def on_ready():
         print(f'- {guild.name} (id: {guild.id})')
         
 @bot.event
-async def on_message(message): #只新增非bot訊息到記憶庫
-    if message:
-        await MemorySqlHelper().add_message(message)
+async def on_message(message):
+    if message:  # 所有訊息都會被處理
+        await HistorySqlHelper().add_message(message)
         print("added message to memory")
-    await bot.process_commands(message)  # <--- 加這行
-        
+    await bot.process_commands(message)
 @bot.event
 async def on_command_error(ctx, error):
     print(f'Command error: {error}')
@@ -51,9 +51,10 @@ async def load_extensions():
 
 async def main():
     # 先初始化資料庫
-    await ConfigSQLHelper().init_db()
     await MemorySqlHelper().init_db()
-    print("initialized memory sql")
+    await ConfigSQLHelper().init_db()
+    await HistorySqlHelper().init_db()
+    print("initialized sql")
     async with bot:
         await load_extensions()
         await bot.start(token=token) #type: ignore
