@@ -12,12 +12,12 @@ class HistoryPackage:
         self.content = messages[4]
 
 class HistorySqlHelper:
-    def __init__(self):
-        self._path = "chat_history.db"
+    _path = "chat_history.db"
 
-    async def init_db(self):           
+    @classmethod
+    async def init_db(cls):           
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     CREATE TABLE IF NOT EXISTS Channel (
@@ -41,8 +41,8 @@ class HistorySqlHelper:
                 await db.commit()
         except Exception as e:
             print(e)
-
-    async def add_message(self, msg:discord.Message):
+    @classmethod
+    async def add_message(cls, msg:discord.Message):
         try:
             if msg.guild and isinstance(msg.channel, discord.TextChannel): # 位於伺服器頻道且為文字頻道
                 _channel_id = msg.channel.id
@@ -51,7 +51,7 @@ class HistorySqlHelper:
                 _author = str(msg.author.display_name)
                 _time = msg.created_at
                 _content = str(msg.content)
-                async with aiosqlite.connect(self._path) as db:
+                async with aiosqlite.connect(cls._path) as db:
                     await db.execute(
                         '''
                         INSERT OR IGNORE INTO Channel(id, name) VALUES(?, ?)
@@ -67,11 +67,11 @@ class HistorySqlHelper:
                     await db.commit()
         except Exception as e:
             print(f"Error adding message: {e}")
-
-    async def add_message_raw(self, _channel_id, _channel_name:Optional[str], _msg_id, _author, _time, _content):
+    @classmethod
+    async def add_message_raw(cls, _channel_id, _channel_name:Optional[str], _msg_id, _author, _time, _content):
         # 原始訊息添加的方式
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     INSERT OR IGNORE INTO Channel(id, name) VALUES(?, ?)
@@ -87,10 +87,10 @@ class HistorySqlHelper:
                 await db.commit()
         except Exception as e:
             print(f"Error adding message: {e}")
-    
-    async def get_history_list(self, channel_id: int, limit: int = 100):
+    @classmethod
+    async def get_history_list(cls, channel_id: int, limit: int = 100):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 cursor = await db.execute(
                     '''
                     SELECT * FROM Message WHERE channelId = ? ORDER BY time DESC LIMIT ?
@@ -105,10 +105,10 @@ class HistorySqlHelper:
         except Exception as e:
             print(e)
             return []
-        
-    async def reset(self):
+    @classmethod
+    async def reset(cls):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute('DROP TABLE IF EXISTS Channel;')
                 await db.execute('DROP TABLE IF EXISTS Message;')
                 await db.commit()

@@ -11,12 +11,13 @@ class ConcentratedPackage:
         self.content = memory[3]
 
 class ConcentratedSqlHelper:
-    def __init__(self):
-        self._path = "concentrated_memory.db"
+    
+    _path = "concentrated_memory.db"
 
-    async def init_db(self):
+    @classmethod
+    async def init_db(cls):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     CREATE TABLE IF NOT EXISTS Memory (
@@ -30,10 +31,10 @@ class ConcentratedSqlHelper:
                 await db.commit()
         except Exception as e:
             print(f"Error initializing database: {e}")
-
-    async def add_memory(self, ctx:commands.Context,content: Optional[str] = None):
+    @classmethod
+    async def add_memory(cls, ctx:commands.Context,content: Optional[str] = None):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     INSERT INTO Memory(channelId, time, content) VALUES (?, ?, ?)
@@ -43,10 +44,10 @@ class ConcentratedSqlHelper:
                 await db.commit()
         except Exception as e:
             print(f"Error adding memory: {e}")
-
-    async def get_memory_list(self, channel_id: int, limit: int = 100):
+    @classmethod
+    async def get_memory_list(cls, channel_id: int, limit: int = 100):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 cursor = await db.execute(
                     '''
                     SELECT * FROM Memory WHERE channelId = ? ORDER BY time DESC LIMIT ?
@@ -61,10 +62,10 @@ class ConcentratedSqlHelper:
         except Exception as e:
             print(f"Error getting memory list: {e}")
             return []
-
-    async def clear_concentrated(self, channel_id: int):
+    @classmethod
+    async def clear_concentrated(cls, channel_id: int):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     DELETE FROM Memory WHERE channelId = ?
@@ -74,10 +75,10 @@ class ConcentratedSqlHelper:
                 await db.commit()
         except Exception as e:
             print(f"Error clearing concentrated memory: {e}")
-    
-    async def reset(self):
+    @classmethod
+    async def reset(cls):
         try:
-            async with aiosqlite.connect(self._path) as db:
+            async with aiosqlite.connect(cls._path) as db:
                 await db.execute(
                     '''
                     DROP TABLE IF EXISTS Memory;

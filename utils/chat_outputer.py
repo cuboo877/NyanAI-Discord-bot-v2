@@ -12,16 +12,16 @@ class ChatOutput:
         cls.ctx = ctx
         cls.response = response
         cls.content = ""
-        cls.deep_memory = Optional[str]  # 用於深度記憶的特殊處理
+        cls.memory = Optional[str]  # 用於深度記憶的特殊處理
         
     @classmethod
     async def strip_output(cls):
         try:
             if "<m>" in cls.response:
                 cls.content = cls.response.split("<m>")[0]
-                cls.deep_memory = cls.response.split("<m>")[1]
-                await ConcentratedSqlHelper().add_memory(
-                    ctx=cls.ctx, content=cls.deep_memory
+                cls.memory = cls.response.split("<m>")[1]
+                await ConcentratedSqlHelper.add_memory(
+                    ctx=cls.ctx, content=cls.memory
                 )  # 新增濃縮記憶
             else:
                 cls.content = cls.response
@@ -29,7 +29,7 @@ class ChatOutput:
             _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
             if _config is None:
                 _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)
-            segment = [s.strip() for s in cls.content.split("<:>") if s.strip()]
+            segment = [s.strip() for s in cls.content.split("<:>")]
             for part in segment:
                 await cls.ctx.send(part)
                 await asyncio.sleep(_config.delay_time)

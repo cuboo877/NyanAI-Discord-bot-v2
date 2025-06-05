@@ -10,7 +10,7 @@ class Concentrated(commands.Cog):
     async def concentrated(self, ctx: commands.Context, limit: int = 10):
         try:
             async with ctx.message.channel.typing():
-                memories = await ConcentratedSqlHelper().get_memory_list(ctx.channel.id, limit=limit)
+                memories = await ConcentratedSqlHelper.get_memory_list(ctx.channel.id, limit=limit)
                 if not memories:
                     await ctx.send("查無濃縮記憶")
                     return
@@ -18,7 +18,7 @@ class Concentrated(commands.Cog):
                 embed = discord.Embed(title="濃縮記憶", color=discord.Color.purple())
                 for m in memories[::-1]:  # 由舊到新
                     embed.add_field(
-                        name=f"{m.author} @ {m.time}",
+                        name=f"@ {m.time}",
                         value=m.content if m.content else "(無內容)",
                         inline=False
                     )
@@ -29,7 +29,7 @@ class Concentrated(commands.Cog):
     @commands.command()
     async def clearconcentrated(self, ctx: commands.Context):
         try:
-            memories = await ConcentratedSqlHelper().get_memory_list(ctx.channel.id, limit=1000)
+            memories = await ConcentratedSqlHelper.get_memory_list(ctx.channel.id, limit=1000)
             if not memories:
                 await ctx.send("查無濃縮記憶")
                 return
@@ -48,7 +48,7 @@ class Concentrated(commands.Cog):
                 return
 
 
-            await ConcentratedSqlHelper().clear_concentrated(ctx.channel.id)
+            await ConcentratedSqlHelper.clear_concentrated(ctx.channel.id)
             await ctx.send(f"已完全刪除本頻道所有濃縮記憶。")
         except Exception as e:
             await ctx.send(f"Error: {e}")

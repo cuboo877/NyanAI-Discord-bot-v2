@@ -6,7 +6,8 @@ import asyncio
 from helper.config_sql_helper import ConfigSQLHelper
 from helper.history_sql_helper import HistorySqlHelper
 from helper.concentrated_sql_helper import ConcentratedSqlHelper
-
+from datetime import datetime
+from auto_reply.auto_reply_trigger import AutoReplyTrigger
 load_dotenv()
 #--------------
 intents = discord.Intents.all()
@@ -22,13 +23,22 @@ async def on_ready():
     print(f'Bot is in {len(bot.guilds)} guilds')
     for guild in bot.guilds:
         print(f'- {guild.name} (id: {guild.id})')
-        
+    # 啟動自動回覆判斷的背景任務
+
+    bot.loop.create_task(AutoReplyTrigger.check_reply_looper())
+     
 @bot.event
 async def on_message(message):
-    if message:  # 所有訊息都會被處理
-        await HistorySqlHelper().add_message(message)
-        print("added message to memory")
+    if message.author == bot.user or message.content.startswith("!"):
+        pass  # 不處理 bot 自己或指令
+    else:
+        AutoReplyTrigger.got_message(message, bot)
+        if AutoReplyTrigger._auto_mode:
+            AutoReplyTrigger.user_replied()
+    await HistorySqlHelper.add_message(message)
+    print("added message to memory")
     await bot.process_commands(message)
+    
 @bot.event
 async def on_command_error(ctx, error):
     print(f'Command error: {error}')
@@ -51,12 +61,13 @@ async def load_extensions():
 
 async def main():
     # 先初始化資料庫
-    await ConcentratedSqlHelper().init_db()
-    await ConfigSQLHelper().init_db()
-    await HistorySqlHelper().init_db()
+    await ConcentratedSqlHelper.init_db()
+    await ConfigSQLHelper.init_db()
+    await HistorySqlHelper.init_db()
     print("initialized sql")
     async with bot:
         await load_extensions()
         await bot.start(token=token) #type: ignore
 
 asyncio.run(main())
+

@@ -10,7 +10,7 @@ class History(commands.Cog):
     async def history(self, ctx: commands.Context, limit: int = 10):
         try:
             async with ctx.message.channel.typing():
-                histories = await HistorySqlHelper().get_history_list(ctx.channel.id, limit=limit)
+                histories = await HistorySqlHelper.get_history_list(ctx.channel.id, limit=limit)
                 if not histories:
                     await ctx.send("查無歷史訊息")
                     return
@@ -30,7 +30,7 @@ class History(commands.Cog):
     @commands.command()
     async def clearhistory(self, ctx: commands.Context):
         try:
-            histories = await HistorySqlHelper().get_history_list(ctx.channel.id, limit=1000)
+            histories = await HistorySqlHelper.get_history_list(ctx.channel.id, limit=1000)
             if not histories:
                 await ctx.send("查無歷史訊息")
                 return
