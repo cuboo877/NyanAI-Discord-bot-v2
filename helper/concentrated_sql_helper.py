@@ -62,6 +62,19 @@ class ConcentratedSqlHelper:
             print(f"Error getting memory list: {e}")
             return []
 
+    async def clear_concentrated(self, channel_id: int):
+        try:
+            async with aiosqlite.connect(self._path) as db:
+                await db.execute(
+                    '''
+                    DELETE FROM Memory WHERE channelId = ?
+                    ''',
+                    (channel_id,)
+                )
+                await db.commit()
+        except Exception as e:
+            print(f"Error clearing concentrated memory: {e}")
+    
     async def reset(self):
         try:
             async with aiosqlite.connect(self._path) as db:
