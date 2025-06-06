@@ -46,6 +46,10 @@ class AutoReplyTrigger:
                 if cls._last_user_time and (now - cls._last_user_time) >= timedelta(seconds=5):
                     await auto_reply()
                     cls._auto_mode = True
+                if cls._last_user_message is not None and cls._last_user_message.content is not None:
+                    await auto_reply()
+                    cls._auto_mode = True
+                    #我知道這裡不應該，但是我好懶
             # 狀態(2)：自動回覆後10秒內沒人回覆就回到(1)，有回覆就再自動回覆
             else:
                 if cls._auto_reply_time:

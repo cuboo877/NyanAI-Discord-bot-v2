@@ -11,9 +11,7 @@ class ConcentratedPackage:
         self.content = memory[3]
 
 class ConcentratedSqlHelper:
-    
     _path = "concentrated_memory.db"
-
     @classmethod
     async def init_db(cls):
         try:
