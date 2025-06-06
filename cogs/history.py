@@ -35,20 +35,8 @@ class History(commands.Cog):
                 await ctx.send("查無歷史訊息")
                 return
 
-            await ctx.send("確定要刪除本頻道所有歷史訊息嗎？請輸入 yes 以確認，或輸入 cancel 取消。")
-
-            def check(m):
-                return m.author == ctx.author and m.channel == ctx.channel
-
-            msg = await ctx.bot.wait_for('message', check=check, timeout=60)
-            if msg.content.lower() == "cancel":
-                await ctx.send("已取消操作。")
-                return
-            if msg.content.lower() != "yes":
-                await ctx.send("未確認，操作已取消。")
-                return
-
-            await ctx.send(f"已完全刪除本頻道所有歷史訊息。")
+            embed = discord.Embed(title="刪除此頻道歷史訊息完成拉喵~", color=discord.Color.blue())
+            await ctx.send(embed=embed)
         except Exception as e:
             await ctx.send(f"Error: {e}")
 

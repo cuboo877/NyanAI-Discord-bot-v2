@@ -17,23 +17,25 @@ class ChatOutput:
     @classmethod
     async def strip_output(cls):
         try:
-            if "<m>" in cls.response:
-                cls.content = cls.response.split("<m>")[0]
-                cls.memory = cls.response.split("<m>")[1]
-                await ConcentratedSqlHelper.add_memory(
-                    ctx=cls.ctx, content=cls.memory
-                )  # 新增濃縮記憶
-            else:
-                cls.content = cls.response
-            
-            _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
-            if _config is None:
-                _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)
-            segment = [s.strip() for s in cls.content.split("<:>")]
-            for part in segment:
-                await cls.ctx.send(part)
-                await asyncio.sleep(_config.delay_time)
-            print('Sent all the stripping response')
+            async with cls.ctx.channel.typing():
+                if "<m>" in cls.response:
+                    cls.content = cls.response.split("<m>")[0]
+                    cls.memory = cls.response.split("<m>")[1]
+                    await ConcentratedSqlHelper.add_memory(
+                        ctx=cls.ctx, content=cls.memory
+                    )  # 新增濃縮記憶
+                else:
+                    cls.content = cls.response
+                
+                _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
+                if _config is None:
+                    _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)
+                segment = [s.strip() for s in cls.content.split("<:>")]
+                for part in segment:
+                    if(part.strip()):
+                        await cls.ctx.send(part)
+                        await asyncio.sleep(_config.delay_time)
+                print('Sent all the stripping response')
         except Exception as e:
             print(f"Error in ChatOutput.strip_output: {e}")
             await cls.ctx.send(embed=discord.Embed(
