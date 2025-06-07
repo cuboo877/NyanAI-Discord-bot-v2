@@ -11,30 +11,28 @@ class ChatOutput:
     def __init__(cls, response:str, ctx:commands.Context):
         cls.ctx = ctx
         cls.response = response
-        cls.content = ""
-        cls.memory = Optional[str]  # 用於深度記憶的特殊處理
         
     @classmethod
     async def strip_output(cls):
         try:
             async with cls.ctx.channel.typing():
-                if "<m>" in cls.response:
-                    cls.content = cls.response.split("<m>")[0]
-                    cls.memory = cls.response.split("<m>")[1]
+                if "<m>" in cls.response: #如果回覆有濃縮記憶，就分割並處裡
+                    content = cls.response.split("<m>")[0] #回覆內容
+                    memory = cls.response.split("<m>")[1] #記憶
                     await ConcentratedSqlHelper.add_memory(
-                        ctx=cls.ctx, content=cls.memory
-                    )  # 新增濃縮記憶
+                        ctx=cls.ctx, content=memory
+                    )  # 新增濃縮記憶至concentrated.db
                 else:
-                    cls.content = cls.response
+                    content = cls.response #沒有<m>就整個都是回覆就對了
                 
-                _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id)
-                if _config is None:
+                _config = await ConfigSQLHelper().get_config_package(channel_id=cls.ctx.channel.id) #得到此頻道的設定(已經包好了)
+                if _config is None: #找不到設定就使用預設
                     _config = await ConfigSQLHelper().get_default_config_package(channel_id=cls.ctx.channel.id)
-                segment = [s.strip() for s in cls.content.split("<:>")]
-                for part in segment:
-                    if(part.strip()):
+                segment = [s.strip() for s in content.split("<:>")]
+                for part in segment: #斷句點分割
+                    if(part.strip()): #怕是純space
                         await cls.ctx.send(part)
-                        await asyncio.sleep(_config.delay_time)
+                        await asyncio.sleep(_config.delay_time) #關鍵的延遲
                 print('Sent all the stripping response')
         except Exception as e:
             print(f"Error in ChatOutput.strip_output: {e}")

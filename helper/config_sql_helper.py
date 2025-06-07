@@ -98,6 +98,7 @@ class ConfigSQLHelper:
                 ) if row else None
     @classmethod            
     async def get_default_config_package(cls, channel_id: int) -> ConfigPackage:
+        await cls.set_default_config(channel_id)
         return ConfigPackage(
             channel_id=channel_id,
             temperature=cls.default_temperature,

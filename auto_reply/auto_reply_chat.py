@@ -14,11 +14,11 @@ class AutoReplyChat:
                 enc = tiktoken.get_encoding("cl100k_base")
                 histories = await HistorySqlHelper.get_history_list(channel_id=ctx.message.channel.id)
                 role_prompt = ConfigSQLHelper.default_role_rules
-                history_prompt = build_history_prompt(histories, enc, max_tokens=250) #自動回覆需要壓低token使用量
+                history_prompt = build_history_prompt(histories, max_tokens=250) #自動回覆需要壓低token使用量
                 auto_reply_prompt = ConfigSQLHelper.default_auto_reply_rules
                 full_prompt = role_prompt + auto_reply_prompt + "\n" + history_prompt
                 response = await request(full_prompt)
-                if response != "<refuse>":
+                if response != "<refuse>": #如果只回<refuse>就是表示不用回覆
                     async with ctx.message.channel.typing():
                         await ChatOutput(response=response, ctx=ctx).strip_output()
                 else:

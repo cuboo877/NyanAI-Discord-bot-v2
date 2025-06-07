@@ -13,6 +13,7 @@ class AutoReplyTrigger:
     _auto_reply_time: Optional[datetime] = None  # 最後一次 auto_reply 的時間
     _bot = None
 
+    #刷新狀態，以利於接下來的判斷
     @classmethod
     def got_message(cls, message: discord.Message, bot: commands.Bot):
         # 只處理非 bot 訊息，刷新資料跟狀態
@@ -22,12 +23,16 @@ class AutoReplyTrigger:
         cls._last_user_message = message
         cls._bot = bot
 
+
+    #那就刷新時間，以利判斷時間
     @classmethod
     def user_replied(cls):
         print("用戶回應")
         # 用戶回應後，更新最後使用者訊息時間
         cls._last_user_time = datetime.now(timezone.utc)
 
+    #每秒在背景檢查
+    #auto_reply: 用於API請求，並隨之更新時間，判斷距離使用者回覆的時間有多久
     @classmethod
     async def check_reply_looper(cls):
         async def auto_reply():
@@ -46,10 +51,7 @@ class AutoReplyTrigger:
                 if cls._last_user_time and (now - cls._last_user_time) >= timedelta(seconds=5):
                     await auto_reply()
                     cls._auto_mode = True
-                if cls._last_user_message is not None and cls._last_user_message.content is not None:
-                    await auto_reply()
-                    cls._auto_mode = True
-                    #我知道這裡不應該，但是我好懶
+                    
             # 狀態(2)：自動回覆後10秒內沒人回覆就回到(1)，有回覆就再自動回覆
             else:
                 if cls._auto_reply_time:

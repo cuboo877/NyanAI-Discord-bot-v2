@@ -16,7 +16,7 @@ class ConcentratedSqlHelper:
     async def init_db(cls):
         try:
             async with aiosqlite.connect(cls._path) as db:
-                await db.execute(
+                await db.execute( #參考chatgpt記憶，它只知道大致摘要，所以不用作者
                     '''
                     CREATE TABLE IF NOT EXISTS Memory (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,

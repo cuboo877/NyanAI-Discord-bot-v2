@@ -26,7 +26,7 @@ class HistorySqlHelper:
                     )
                     '''
                 )
-                await db.execute(
+                await db.execute( # 不用server是因為沒有什麼用處，因為是以頻道來做記憶的
                     '''
                     CREATE TABLE IF NOT EXISTS Message (
                         id BIGINT PRIMARY KEY,
@@ -48,17 +48,17 @@ class HistorySqlHelper:
                 _channel_id = msg.channel.id
                 _channel_name = str(msg.channel.name)
                 _msg_id = msg.id
-                _author = str(msg.author.display_name)
+                _author = str(msg.author.display_name) 
                 _time = msg.created_at
                 _content = str(msg.content)
                 async with aiosqlite.connect(cls._path) as db:
-                    await db.execute(
+                    await db.execute( #如果沒有在伺服器上(也就是第一次add_message)，不是新增就是不做
                         '''
                         INSERT OR IGNORE INTO Channel(id, name) VALUES(?, ?)
                         ''',
                         (_channel_id, _channel_name)
                     )
-                    await db.execute(
+                    await db.execute( #一樣
                         '''
                         INSERT OR IGNORE INTO Message(id, channelId, author, time, content) VALUES(?, ?, ?, ?, ?)
                         ''',
@@ -67,40 +67,21 @@ class HistorySqlHelper:
                     await db.commit()
         except Exception as e:
             print(f"Error adding message: {e}")
-    @classmethod
-    async def add_message_raw(cls, _channel_id, _channel_name:Optional[str], _msg_id, _author, _time, _content):
-        # 原始訊息添加的方式
-        try:
-            async with aiosqlite.connect(cls._path) as db:
-                await db.execute(
-                    '''
-                    INSERT OR IGNORE INTO Channel(id, name) VALUES(?, ?)
-                    ''',
-                    (_channel_id, _channel_name)
-                )
-                await db.execute(
-                    '''
-                    INSERT OR IGNORE INTO Message(id, channelId, author, time, content) VALUES(?, ?, ?, ?, ?)
-                    ''',
-                    (_msg_id, _channel_id, _author, _time, _content)
-                )
-                await db.commit()
-        except Exception as e:
-            print(f"Error adding message: {e}")
-    @classmethod
+            
+    @classmethod #limit是訊息限制量
     async def get_history_list(cls, channel_id: int, limit: int = 100):
         try:
             async with aiosqlite.connect(cls._path) as db:
-                cursor = await db.execute(
+                cursor = await db.execute( 
                     '''
                     SELECT * FROM Message WHERE channelId = ? ORDER BY time DESC LIMIT ?
                     ''',
                     (channel_id, limit)
-                )
+                ) # fetchall() 回傳的會是tuple: (id, channelId,... )
                 rows = await cursor.fetchall()
                 result = []
                 for row in rows:
-                    result.append(HistoryPackage(messages=row))
+                    result.append(HistoryPackage(messages=row)) #這就是為什麼Package是這樣設計的
                 return result
         except Exception as e:
             print(e)

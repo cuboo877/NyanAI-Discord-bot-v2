@@ -13,7 +13,7 @@ apiKey = os.getenv('gemini-apiKey')
 client = genai.Client(api_key=apiKey)
 model_name = ConfigSQLHelper.default_model
 
-
+#通用方法 向API請求
 async def request(prompt:str): #memory powered
     try:
         response = client.models.generate_content(
